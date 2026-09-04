@@ -16,6 +16,20 @@ Community dashboard cards for **Home Assistant**, designed around the entities e
 
 All cards are designed for graphical Home Assistant configuration. YAML remains available for advanced/manual overrides.
 
+## Screenshots
+
+### Sleep
+
+| Night | 7 days | 30 days |
+|---|---|---|
+| ![Sleep night view](docs/images/sleep-night.png) | ![Sleep 7-day view](docs/images/sleep-7-days.png) | ![Sleep 30-day view](docs/images/sleep-30-days.png) |
+
+### Activity, health and training
+
+| Activity today | Health | Training |
+|---|---|---|
+| ![Activity today view](docs/images/activity-today.png) | ![Health card](docs/images/health.png) | ![Training card](docs/images/training.png) |
+
 ## Highlights
 
 ### Registry-based Zepp2Hass discovery
@@ -141,8 +155,6 @@ Node.js 22+:
 ```bash
 npm run check
 ```
-
-See `AGENTS.md` and `CODEX_HANDOFF.md` for the current publication checklist and project invariants.
 
 ## License
 
