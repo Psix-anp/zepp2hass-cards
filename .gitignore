@@ -10,6 +10,7 @@ zepp2hass_entities_*.csv
 *.har.zip
 
 # Local preview / scratch output.
+.worktrees/
 preview*.html
 screenshots-local/
 .tmp/
