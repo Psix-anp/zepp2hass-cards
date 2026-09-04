@@ -123,6 +123,46 @@ test('overview card renders today metrics from Zepp2Hass entities', () => {
   assert.match(card.innerHTML, /Сон/);
   assert.match(card.innerHTML, /Восстановление/);
   assert.match(card.innerHTML, /Восстановление[\s\S]*14[\s\S]*ч/);
+  assert.match(card.innerHTML, /data-overview-entity="sensor.watch_steps"/);
+  assert.match(card.innerHTML, /data-overview-entity="sensor.watch_sleep_score"/);
+
+  const listeners = {};
+  const stepsTile = { dataset: { overviewEntity: 'sensor.watch_steps' }, addEventListener(type, handler) { listeners[type] = handler; } };
+  let moreInfo = null;
+  card.querySelectorAll = (selector) => selector === '[data-overview-entity]' ? [stepsTile] : [];
+  card.dispatchEvent = (event) => { moreInfo = event; return true; };
+  card._setupInteractions();
+  listeners.click();
+  assert.equal(moreInfo.type, 'hass-more-info');
+  assert.equal(moreInfo.detail.entityId, 'sensor.watch_steps');
+});
+
+test('overview discovery stays in the Zepp2Hass config entry and keeps manual mappings', async () => {
+  const { exports } = loadBundle();
+  const card = new exports.AmazfitOverviewCard();
+  card.setConfig({ entity: 'sensor.watch_steps', heart_rate_entity: 'sensor.manual_heart_rate' });
+  card.hass = {
+    states: {
+      'sensor.watch_steps': { state: '100', attributes: {} },
+      'sensor.manual_heart_rate': { state: '65', attributes: {} },
+    },
+    callWS: async (message) => message.type === 'config/entity_registry/list' ? [
+      { entity_id: 'sensor.watch_steps', platform: 'zepp2hass', config_entry_id: 'watch-a', device_id: 'main', unique_id: 'watch_steps', original_name: 'Steps' },
+      { entity_id: 'sensor.watch_sleep_score', platform: 'zepp2hass', config_entry_id: 'watch-a', device_id: 'sleep', unique_id: 'watch_sleep_score', original_name: 'Sleep Score' },
+      { entity_id: 'sensor.watch_heart_rate', platform: 'zepp2hass', config_entry_id: 'watch-a', device_id: 'health', unique_id: 'watch_heart_rate', original_name: 'Heart Rate' },
+      { entity_id: 'sensor.watch_pai', platform: 'zepp2hass', config_entry_id: 'watch-a', device_id: 'health', unique_id: 'watch_pai', original_name: 'PAI' },
+      { entity_id: 'sensor.watch_training_load', platform: 'zepp2hass', config_entry_id: 'watch-a', device_id: 'training', unique_id: 'watch_training_load', original_name: 'Training Load' },
+      { entity_id: 'sensor.other_sleep_score', platform: 'zepp2hass', config_entry_id: 'watch-b', device_id: 'other', unique_id: 'other_sleep_score', original_name: 'Sleep Score' },
+    ] : [],
+  };
+
+  await card._ensureDiscoveredMetrics(true);
+  const mappings = card._resolvedMappings();
+  assert.equal(mappings.steps_entity, 'sensor.watch_steps');
+  assert.equal(mappings.sleep_score_entity, 'sensor.watch_sleep_score');
+  assert.equal(mappings.heart_rate_entity, 'sensor.manual_heart_rate');
+  assert.equal(mappings.pai_entity, 'sensor.watch_pai');
+  assert.equal(mappings.training_load_entity, 'sensor.watch_training_load');
 });
 
 
