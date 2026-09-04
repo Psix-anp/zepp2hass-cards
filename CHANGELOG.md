@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-09-04
+
+- Activity: tapping an hourly bar now shows the selected time range and step count on touch devices.
+
 ## [1.0.2] - 2026-09-04
 
 ### Fixed

@@ -194,6 +194,33 @@ test('activity card renders the 24-hour profile from recorded states plus live s
   assert.match(card.innerHTML, /01:00–02:00/);
 });
 
+test('activity hourly profile shows selected hour steps after a tap', async () => {
+  const { exports } = loadBundle();
+  const card = new exports.AmazfitActivityCard();
+  card.setConfig({ steps_entity: 'sensor.watch_steps', show_hourly_profile: true, language: 'ru' });
+  const now = new Date();
+  const stamp = (hour, value) => ({ state: String(value), last_updated: new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0).toISOString() });
+  card.hass = {
+    language: 'ru',
+    config: { time_zone: 'UTC' },
+    states: { 'sensor.watch_steps': { state: '900', last_updated: stamp(3, 900).last_updated, attributes: {} } },
+    callWS: async (msg) => {
+      if (msg.type === 'history/history_during_period') return { 'sensor.watch_steps': [stamp(0, 100), stamp(1, 500), stamp(3, 900)] };
+      if (msg.type === 'config/entity_registry/list') return [];
+      return {};
+    },
+  };
+  await card._loadHourlyHistory(true);
+
+  const listeners = {};
+  const hourOne = { dataset: { activityHour: '1' }, addEventListener(type, handler) { listeners[type] = handler; } };
+  card.querySelectorAll = (selector) => selector === '[data-activity-hour]' ? [hourOne] : [];
+  card._setupHourlyProfile();
+  listeners.click();
+
+  assert.match(card.innerHTML, /activity-hourly-selection[\s\S]*01:00–02:00[\s\S]*400[\s\S]*Шаги/);
+});
+
 test('sleep period summary renders average schedule and latest-night deviation', () => {
   const { exports } = loadBundle();
   const card = new exports.AmazfitSleepCard();

@@ -6,7 +6,7 @@
  * License: MIT
  */
 
-const Z2H_VERSION = "1.0.2";
+const Z2H_VERSION = "1.0.3";
 const Z2H_CARD_DEFINITIONS = [
   {
     type: "amazfit-sleep-card",
@@ -3003,7 +3003,7 @@ class AmazfitActivityCard extends HTMLElement {
       .activity-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.activity-metric{padding:12px;border-radius:13px;background:color-mix(in srgb,var(--primary-text-color) 5%,transparent)}.activity-metric-label{font-size:11px;color:var(--secondary-text-color)}.activity-metric-value{margin-top:4px;font-size:20px;font-weight:750}.activity-metric-value span{font-size:11px;font-weight:500;color:var(--secondary-text-color);margin-left:4px}.activity-empty{padding:28px 12px;text-align:center;color:var(--secondary-text-color)}
       .activity-history{display:grid;gap:14px}.activity-history-chart{height:190px;display:flex;align-items:stretch;gap:5px;position:relative;padding-top:10px;border-bottom:1px solid color-mix(in srgb,var(--primary-text-color) 12%,transparent)}.activity-days{display:grid;grid-template-columns:repeat(var(--activity-days),minmax(0,1fr));gap:5px;align-items:end;width:100%;position:relative;z-index:2}.activity-day{display:grid;grid-template-rows:1fr auto;gap:5px;align-items:end;min-width:0;height:100%}.activity-day-bar-wrap{height:100%;display:flex;align-items:end;justify-content:center}.activity-day-bar{width:min(18px,70%);min-height:2px;border-radius:6px 6px 2px 2px;background:var(--primary-color);opacity:.88}.activity-day.empty .activity-day-bar{height:2px!important;background:color-mix(in srgb,var(--primary-text-color) 14%,transparent)}.activity-day-label{text-align:center;font-size:9px;line-height:1.1;color:var(--secondary-text-color);white-space:nowrap;overflow:hidden}.activity-history.compact .activity-history-chart{height:150px}.activity-history.compact .activity-days{gap:2px}.activity-history.compact .activity-day-label{display:none}.activity-history.compact .activity-day-bar{width:80%;border-radius:3px 3px 1px 1px}.activity-target-line{position:absolute;left:0;right:0;border-top:1px dashed color-mix(in srgb,var(--primary-color) 62%,transparent);z-index:1}.activity-history-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.activity-history-stat{padding:10px;border-radius:12px;background:color-mix(in srgb,var(--primary-text-color) 5%,transparent)}.activity-history-stat strong{display:block;font-size:18px}.activity-history-stat span{display:block;font-size:10px;color:var(--secondary-text-color)}.activity-history-stat small{display:block;margin-top:3px;font-size:9px;color:var(--secondary-text-color)}
       .activity-records{margin-top:14px}.activity-records-title{font-size:12px;font-weight:750;color:var(--secondary-text-color);margin-bottom:8px}.activity-records-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.activity-record{padding:11px 12px;border-radius:13px;background:color-mix(in srgb,var(--primary-text-color) 5%,transparent)}.activity-record-label{font-size:10px;color:var(--secondary-text-color)}.activity-record-value{margin-top:3px;font-size:18px;font-weight:800}.activity-record-date{margin-top:2px;font-size:9px;color:var(--secondary-text-color)}.activity-record.streak .activity-record-value{color:var(--primary-color)}
-      .activity-hourly{margin-top:16px;padding-top:2px}.activity-hourly-title{font-size:12px;font-weight:750;color:var(--secondary-text-color);margin-bottom:9px}.activity-hourly-chart{height:92px;display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:2px;align-items:end;border-bottom:1px solid color-mix(in srgb,var(--primary-text-color) 12%,transparent);padding-bottom:15px;position:relative}.activity-hour{height:100%;display:flex;align-items:end;position:relative}.activity-hour-bar{width:100%;min-height:2px;border-radius:3px 3px 1px 1px;background:color-mix(in srgb,var(--primary-color) 82%,transparent)}.activity-hour:nth-child(3n+1)::after{content:attr(data-hour);position:absolute;left:0;bottom:-14px;transform:translateX(-1px);font-size:8px;color:var(--secondary-text-color)}.activity-hourly-summary{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:10px;color:var(--secondary-text-color)}.activity-hourly-summary strong{color:var(--primary-text-color);font-size:11px}
+      .activity-hourly{margin-top:16px;padding-top:2px}.activity-hourly-title{font-size:12px;font-weight:750;color:var(--secondary-text-color);margin-bottom:9px}.activity-hourly-chart{height:92px;display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:2px;align-items:end;border-bottom:1px solid color-mix(in srgb,var(--primary-text-color) 12%,transparent);padding-bottom:15px;position:relative}.activity-hour{appearance:none;height:100%;display:flex;align-items:end;position:relative;border:0;padding:0;background:transparent;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}.activity-hour:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px;border-radius:4px}.activity-hour-bar{width:100%;min-height:2px;border-radius:3px 3px 1px 1px;background:color-mix(in srgb,var(--primary-color) 82%,transparent)}.activity-hour.selected .activity-hour-bar{background:var(--primary-color);box-shadow:0 0 0 1px color-mix(in srgb,var(--primary-color) 44%,transparent)}.activity-hour:nth-child(3n+1)::after{content:attr(data-hour);position:absolute;left:0;bottom:-14px;transform:translateX(-1px);font-size:8px;color:var(--secondary-text-color)}.activity-hourly-selection{display:flex;align-items:baseline;gap:7px;margin-top:8px;padding:7px 9px;border-radius:9px;background:color-mix(in srgb,var(--primary-color) 9%,transparent);font-size:11px}.activity-hourly-selection strong{color:var(--primary-text-color)}.activity-hourly-selection span{color:var(--primary-color);font-weight:750}.activity-hourly-summary{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:10px;color:var(--secondary-text-color)}.activity-hourly-summary strong{color:var(--primary-text-color);font-size:11px}
       .activity-retry{margin-top:10px;border:1px solid var(--divider-color);border-radius:9px;padding:7px 11px;background:transparent;color:var(--primary-color)}
       @media(max-width:420px){.activity-history-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
     `;
@@ -3173,10 +3173,15 @@ class AmazfitActivityCard extends HTMLElement {
     const bars = profile.hours.map((value, hour) => {
       const height = value > 0 ? Math.max(3, Math.min(100, value / maxValue * 100)) : 2;
       const hourLabel = String(hour).padStart(2, "0");
-      return `<div class="activity-hour" data-hour="${hourLabel}" title="${hourLabel}:00–${String((hour + 1) % 24).padStart(2, "0")}:00 · ${this._fmtNumber(value)}"><div class="activity-hour-bar" style="height:${height.toFixed(1)}%"></div></div>`;
+      const range = `${hourLabel}:00–${String((hour + 1) % 24).padStart(2, "0")}:00`;
+      const selected = this._selectedHourlyHour === hour;
+      return `<button type="button" class="activity-hour${selected ? " selected" : ""}" data-activity-hour="${hour}" data-hour="${hourLabel}" title="${range} · ${this._fmtNumber(value)} ${this._t("steps")}" aria-label="${range} · ${this._fmtNumber(value)} ${this._t("steps")}" aria-pressed="${selected}"><span class="activity-hour-bar" style="height:${height.toFixed(1)}%"></span></button>`;
     }).join("");
     const bestRange = profile.bestHour == null ? "—" : `${String(profile.bestHour).padStart(2, "0")}:00–${String((profile.bestHour + 1) % 24).padStart(2, "0")}:00`;
-    return `<div class="activity-hourly"><div class="activity-hourly-title">${this._t("hourly_profile")}</div><div class="activity-hourly-chart">${bars}</div><div class="activity-hourly-summary"><span>${this._t("most_active_hour")}: <strong>${bestRange}${profile.bestHour == null ? "" : ` · ${this._fmtNumber(profile.bestValue)}`}</strong></span><span>${this._t("active_hours")}: <strong>${profile.activeHours}</strong></span></div></div>`;
+    const selectedHour = Number(this._selectedHourlyHour);
+    const selectedRange = Number.isInteger(selectedHour) && selectedHour >= 0 && selectedHour < 24 ? `${String(selectedHour).padStart(2, "0")}:00–${String((selectedHour + 1) % 24).padStart(2, "0")}:00` : null;
+    const selection = selectedRange ? `<div class="activity-hourly-selection" role="status"><strong>${selectedRange}</strong><span>${this._fmtNumber(profile.hours[selectedHour])} ${this._t("steps")}</span></div>` : "";
+    return `<div class="activity-hourly"><div class="activity-hourly-title">${this._t("hourly_profile")}</div><div class="activity-hourly-chart">${bars}</div>${selection}<div class="activity-hourly-summary"><span>${this._t("most_active_hour")}: <strong>${bestRange}${profile.bestHour == null ? "" : ` · ${this._fmtNumber(profile.bestValue)}`}</strong></span><span>${this._t("active_hours")}: <strong>${profile.activeHours}</strong></span></div></div>`;
   }
 
   _renderToday(stepsMetric, mappings) {
@@ -3331,6 +3336,17 @@ class AmazfitActivityCard extends HTMLElement {
     }
   }
 
+  _setupHourlyProfile() {
+    for (const button of this.querySelectorAll?.("[data-activity-hour]") || []) {
+      button.addEventListener("click", () => {
+        const hour = Number(button.dataset.activityHour);
+        if (!Number.isInteger(hour) || hour < 0 || hour > 23) return;
+        this._selectedHourlyHour = hour;
+        this.render();
+      });
+    }
+  }
+
   render() {
     if (!this._hass || !this.config) return;
     const mappings = this._resolvedMappings();
@@ -3343,6 +3359,7 @@ class AmazfitActivityCard extends HTMLElement {
     const body = this._view === "today" ? this._renderToday(stepsMetric, mappings) : this._renderHistory(this._view === "7d" ? 7 : 30);
     this.innerHTML = `<ha-card><style>${this._styles()}</style><div class="activity-head"><div class="activity-icon"><ha-icon icon="mdi:walk"></ha-icon></div><div class="activity-title">${z2hEsc(title)}</div></div>${this._tabsHtml()}${body}</ha-card>`;
     this._setupTabs();
+    this._setupHourlyProfile();
   }
 }
 

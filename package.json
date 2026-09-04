@@ -1,6 +1,6 @@
 {
   "name": "zepp2hass-cards",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "type": "module",
   "description": "Community Home Assistant dashboard cards for Zepp2Hass",
