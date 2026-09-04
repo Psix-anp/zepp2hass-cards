@@ -1,0 +1,15 @@
+node_modules/
+.DS_Store
+*.log
+*.zip
+
+# Never publish real Home Assistant / Zepp2Hass exports or browser captures.
+zepp2hass_entities_*.json
+zepp2hass_entities_*.csv
+*.har
+*.har.zip
+
+# Local preview / scratch output.
+preview*.html
+screenshots-local/
+.tmp/

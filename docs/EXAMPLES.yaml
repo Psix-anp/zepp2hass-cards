@@ -1,0 +1,35 @@
+# GUI-first setup is recommended. These are manual override examples.
+
+# Sleep
+# type: custom:amazfit-sleep-card
+# entity: sensor.my_watch_sleep_score
+# language: auto
+
+# Activity
+# type: custom:amazfit-activity-card
+# steps_entity: sensor.my_watch_steps
+# language: auto
+
+# Health
+# type: custom:amazfit-health-card
+# heart_rate_entity: sensor.my_watch_heart_rate
+# language: auto
+
+# Training
+# type: custom:amazfit-training-card
+# last_workout_entity: sensor.my_watch_last_workout
+# language: auto
+
+# Family Activity
+# type: custom:family-activity-card
+# language: auto
+# participants:
+#   - id: person_a
+#     name: Person A
+#     steps_entity: sensor.person_a_steps
+#     target_mode: entity
+#   - id: person_b
+#     name: Person B
+#     steps_entity: sensor.person_b_steps
+#     target_mode: manual
+#     manual_target: 8000
