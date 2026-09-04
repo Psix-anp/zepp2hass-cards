@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-04
+
+### Added
+
+- Zepp Overview Card: a compact current-day view for steps, Sleep Score, heart rate, PAI and recovery.
+- Overview Card GUI editor with Zepp2Hass registry discovery and manual entity overrides.
+- Tapping a metric opens its Home Assistant entity details.
+
 ## [1.0.3] - 2026-09-04
 
 - Activity: tapping an hourly bar now shows the selected time range and step count on touch devices.

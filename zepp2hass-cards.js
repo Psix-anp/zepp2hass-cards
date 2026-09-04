@@ -6,7 +6,7 @@
  * License: MIT
  */
 
-const Z2H_VERSION = "1.0.3";
+const Z2H_VERSION = "1.1.0";
 const Z2H_CARD_DEFINITIONS = [
   {
     type: "amazfit-sleep-card",
@@ -3559,6 +3559,167 @@ class AmazfitActivityCardEditor extends Z2HBaseEditor {
 if (!customElements.get("amazfit-activity-card-editor")) {
   customElements.define("amazfit-activity-card-editor", AmazfitActivityCardEditor);
 }
+
+const Z2H_OVERVIEW_METRIC_SPECS = [
+  { key: "steps_entity", uniqueSuffixes: ["steps"], originalNames: ["Steps"] },
+  { key: "sleep_score_entity", uniqueSuffixes: ["sleep_score"], originalNames: ["Sleep Score"] },
+  { key: "heart_rate_entity", uniqueSuffixes: ["heart_rate"], originalNames: ["Heart Rate"] },
+  { key: "pai_entity", uniqueSuffixes: ["pai"], originalNames: ["PAI"] },
+  { key: "training_load_entity", uniqueSuffixes: ["training_load"], originalNames: ["Training Load"] },
+];
+
+class AmazfitOverviewCard extends HTMLElement {
+  setConfig(config) {
+    const seed = config?.entity || config?.steps_entity || "";
+    const previous = this.config?.entity || "";
+    this.config = {
+      title: null,
+      language: "auto",
+      entity: seed,
+      steps_entity: null,
+      sleep_score_entity: null,
+      heart_rate_entity: null,
+      pai_entity: null,
+      training_load_entity: null,
+      ...config,
+      entity: seed,
+    };
+    if (previous !== seed) {
+      this._overviewDiscovered = {};
+      this._overviewDiscoverySeed = null;
+      this._overviewDiscoveryReady = false;
+      this._overviewDiscoveryPromise = null;
+    }
+    if (this._hass) this._ensureDiscoveredMetrics();
+  }
+
+  set hass(hass) {
+    this._hass = hass;
+    this.render();
+    this._ensureDiscoveredMetrics();
+  }
+
+  getCardSize() { return 5; }
+
+  static getConfigElement() { return document.createElement("amazfit-overview-card-editor"); }
+
+  static getStubConfig(hass, entities) {
+    const spec = Z2H_OVERVIEW_METRIC_SPECS[0];
+    return { entity: z2hFindSeedFromStates(hass, spec, entities) || "", language: "auto" };
+  }
+
+  _lang() {
+    if (["ru", "en"].includes(this.config?.language)) return this.config.language;
+    return String(this._hass?.language || navigator.language || "en").toLowerCase().startsWith("ru") ? "ru" : "en";
+  }
+
+  _t(key) {
+    const tr = {
+      ru: { title: "Сегодня", sleep: "Сон", steps: "Шаги", heart_rate: "Пульс", pai: "PAI", recovery: "Восстановление", hours: "ч", unavailable: "Недоступно" },
+      en: { title: "Today", sleep: "Sleep", steps: "Steps", heart_rate: "Heart rate", pai: "PAI", recovery: "Recovery", hours: "h", unavailable: "Unavailable" },
+    };
+    return tr[this._lang()][key] ?? key;
+  }
+
+  _number(value, digits = 0) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return "—";
+    return new Intl.NumberFormat(this._lang() === "ru" ? "ru-RU" : "en-US", { maximumFractionDigits: digits }).format(number).replace(/[\u00a0\u202f]/g, " ");
+  }
+
+  _state(entityId) {
+    const state = entityId ? this._hass?.states?.[entityId] : null;
+    return state && state.state !== "unknown" && state.state !== "unavailable" ? state : null;
+  }
+
+  _resolvedMappings() {
+    return z2hResolveMappings({
+      config: this.config || {},
+      discovered: this._overviewDiscovered || {},
+      mappingKeys: Z2H_OVERVIEW_METRIC_SPECS.map((spec) => spec.key),
+    });
+  }
+
+  async _ensureDiscoveredMetrics(force = false) {
+    const seed = this.config?.entity;
+    if (!seed || !this._hass?.callWS) return this._overviewDiscovered || {};
+    if (!force && this._overviewDiscoveryReady && this._overviewDiscoverySeed === seed) return this._overviewDiscovered || {};
+    if (!force && this._overviewDiscoveryPromise && this._overviewDiscoverySeed === seed) return this._overviewDiscoveryPromise;
+    this._overviewDiscoverySeed = seed;
+    const requestedSeed = seed;
+    const promise = z2hFetchEntityRegistry(this._hass).then((registry) => {
+      if (this.config?.entity !== requestedSeed) return this._overviewDiscovered || {};
+      this._overviewDiscovered = z2hDiscoverSameDevice({ registry, seedEntityId: requestedSeed, platform: "zepp2hass", metricSpecs: Z2H_OVERVIEW_METRIC_SPECS });
+      this._overviewDiscoveryReady = true;
+      this.render();
+      return this._overviewDiscovered;
+    }).catch(() => {
+      if (this.config?.entity === requestedSeed) this._overviewDiscoveryReady = true;
+      return this._overviewDiscovered || {};
+    }).finally(() => {
+      if (this._overviewDiscoveryPromise === promise) this._overviewDiscoveryPromise = null;
+    });
+    this._overviewDiscoveryPromise = promise;
+    return promise;
+  }
+
+  _tile(key, label, value, unit, entityId, primary = false) {
+    const enabled = entityId ? "" : " disabled";
+    return `<button type="button" class="overview-tile${primary ? " primary" : ""}" data-overview-entity="${z2hEsc(entityId || "")}"${enabled}><span>${label}</span><strong>${value}</strong>${unit ? `<small>${unit}</small>` : ""}</button>`;
+  }
+
+  _styles() {
+    return `
+      ha-card{padding:18px;border-radius:var(--ha-card-border-radius,16px);overflow:hidden}.overview-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}.overview-icon{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--primary-color) 14%,transparent);color:var(--primary-color)}.overview-title{font-size:21px;font-weight:750}.overview-summary{margin-bottom:10px;padding:14px;border-radius:15px;background:linear-gradient(135deg,color-mix(in srgb,var(--primary-color) 14%,transparent),color-mix(in srgb,var(--primary-color) 4%,transparent));display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.overview-hero-label{font-size:10px;color:var(--secondary-text-color)}.overview-hero-value{margin-top:3px;font-size:29px;font-weight:800;letter-spacing:-.6px}.overview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.overview-tile{appearance:none;min-width:0;padding:11px 9px;border:0;border-radius:13px;background:color-mix(in srgb,var(--primary-text-color) 5%,transparent);color:inherit;font:inherit;text-align:left;cursor:pointer}.overview-tile:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px}.overview-tile:disabled{cursor:default;opacity:.65}.overview-tile span,.overview-tile small{display:block;font-size:9px;color:var(--secondary-text-color)}.overview-tile strong{display:block;margin-top:4px;font-size:19px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.overview-tile small{margin-top:2px}.overview-tile.primary{background:color-mix(in srgb,var(--primary-color) 9%,transparent)}@media(max-width:360px){.overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.overview-tile.primary{grid-column:1/-1}}
+    `;
+  }
+
+  _setupInteractions() {
+    for (const tile of this.querySelectorAll?.("[data-overview-entity]") || []) {
+      tile.addEventListener("click", () => {
+        const entityId = tile.dataset.overviewEntity;
+        if (entityId) this.dispatchEvent(new CustomEvent("hass-more-info", { detail: { entityId }, bubbles: true, composed: true }));
+      });
+    }
+  }
+
+  render() {
+    if (!this._hass || !this.config) return;
+    const mappings = this._resolvedMappings();
+    const steps = this._state(mappings.steps_entity);
+    const sleep = this._state(mappings.sleep_score_entity);
+    const heart = this._state(mappings.heart_rate_entity);
+    const pai = this._state(mappings.pai_entity);
+    const load = this._state(mappings.training_load_entity);
+    const recovery = Number(load?.attributes?.full_recovery_time_hours);
+    const title = this.config.title || this._t("title");
+    this.innerHTML = `<ha-card><style>${this._styles()}</style><div class="overview-head"><div class="overview-icon"><ha-icon icon="mdi:chart-donut-variant"></ha-icon></div><div class="overview-title">${z2hEsc(title)}</div></div><div class="overview-summary"><div><div class="overview-hero-label">${this._t("steps")}</div><div class="overview-hero-value">${this._number(steps?.state)}</div></div><div><div class="overview-hero-label">${this._t("sleep")}</div><div class="overview-hero-value">${this._number(sleep?.state)}</div></div></div><div class="overview-grid">${this._tile("heart", this._t("heart_rate"), this._number(heart?.state), heart?.attributes?.unit_of_measurement || "", mappings.heart_rate_entity, true)}${this._tile("pai", this._t("pai"), this._number(pai?.state), "", mappings.pai_entity)}${this._tile("recovery", this._t("recovery"), Number.isFinite(recovery) ? this._number(recovery) : "—", Number.isFinite(recovery) ? this._t("hours") : "", mappings.training_load_entity)}</div></ha-card>`;
+    this._setupInteractions();
+  }
+}
+
+if (!customElements.get("amazfit-overview-card")) customElements.define("amazfit-overview-card", AmazfitOverviewCard);
+window.customCards = window.customCards || [];
+if (!window.customCards.some((card) => card.type === "amazfit-overview-card")) window.customCards.push({ type: "amazfit-overview-card", name: "Amazfit Overview Card", description: "Today overview for Zepp2Hass telemetry", preview: true });
+
+class AmazfitOverviewCardEditor extends Z2HBaseEditor {
+  _lang() { return String(this._hass?.language || navigator.language || "en").toLowerCase().startsWith("ru") ? "ru" : "en"; }
+
+  _t(key) {
+    const tr = {
+      ru: { source: "Источник данных", seed: "Любая сущность Zepp2Hass", language: "Язык", auto: "Авто", russian: "Русский", english: "English", advanced: "Сущности", note: "Выберите одну сущность Zepp2Hass для автоопределения. Ручные настройки имеют приоритет.", steps: "Шаги", sleep: "Sleep Score", heart: "Пульс", pai: "PAI", training: "Нагрузка" },
+      en: { source: "Data source", seed: "Any Zepp2Hass entity", language: "Language", auto: "Auto", russian: "Русский", english: "English", advanced: "Entities", note: "Choose one Zepp2Hass entity for auto-discovery. Manual settings take priority.", steps: "Steps", sleep: "Sleep Score", heart: "Heart rate", pai: "PAI", training: "Training load" },
+    };
+    return tr[this._lang()][key] ?? key;
+  }
+
+  renderContent() {
+    if (!this._config) return "";
+    return `<section class="z2h-section"><div class="z2h-section-title">${this._t("source")}</div>${this._entityPickerHtml({ key: "entity", label: this._t("seed"), value: this._config.entity || "", domains: ["sensor"] })}${this._selectHtml("language", this._t("language"), this._config.language || "auto", [{ value: "auto", label: this._t("auto") }, { value: "ru", label: this._t("russian") }, { value: "en", label: this._t("english") }])}</section><section class="z2h-section"><div class="z2h-section-title">${this._t("advanced")}</div><div class="z2h-section-note">${this._t("note")}</div>${this._entityPickerHtml({ key: "steps_entity", label: this._t("steps"), value: this._config.steps_entity || "", domains: ["sensor"] })}${this._entityPickerHtml({ key: "sleep_score_entity", label: this._t("sleep"), value: this._config.sleep_score_entity || "", domains: ["sensor"] })}${this._entityPickerHtml({ key: "heart_rate_entity", label: this._t("heart"), value: this._config.heart_rate_entity || "", domains: ["sensor"] })}${this._entityPickerHtml({ key: "pai_entity", label: this._t("pai"), value: this._config.pai_entity || "", domains: ["sensor"] })}${this._entityPickerHtml({ key: "training_load_entity", label: this._t("training"), value: this._config.training_load_entity || "", domains: ["sensor"] })}</section>`;
+  }
+}
+
+if (!customElements.get("amazfit-overview-card-editor")) customElements.define("amazfit-overview-card-editor", AmazfitOverviewCardEditor);
 
 const Z2H_HEALTH_METRIC_SPECS = [
   { key: "heart_rate_entity", uniqueSuffixes: ["heart_rate"], originalNames: ["Heart Rate"] },

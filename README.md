@@ -8,6 +8,7 @@ Community dashboard cards for **Home Assistant**, designed around the entities e
 
 | Card | Custom element | Purpose |
 |---|---|---|
+| Overview | `custom:amazfit-overview-card` | Current-day steps, Sleep Score, HR, PAI and recovery at a glance |
 | Sleep | `custom:amazfit-sleep-card` | Night hypnogram, stages, score, 7/30-day history, zoom/pan, regularity |
 | Activity | `custom:amazfit-activity-card` | Steps, goals, 7/30-day history, records, hourly activity profile |
 | Health | `custom:amazfit-health-card` | HR, stress, SpO2, temperature, PAI, training/recovery telemetry |
@@ -92,6 +93,11 @@ Hard-refresh the browser after replacing the bundle.
 Normally use the graphical editor. Example seeds are shown only for manual setup.
 
 ```yaml
+# Overview
+type: custom:amazfit-overview-card
+entity: sensor.my_watch_steps
+language: auto
+
 # Sleep
 type: custom:amazfit-sleep-card
 entity: sensor.my_watch_sleep_score

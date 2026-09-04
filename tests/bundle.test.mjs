@@ -44,6 +44,7 @@ function loadBundle() {
   ctx.globalThis = ctx;
   vm.createContext(ctx);
   vm.runInContext(`${source}\n;globalThis.__z2hExports = {\n    AmazfitActivityCard, AmazfitSleepCard,\n    AmazfitTrainingCard: typeof AmazfitTrainingCard === 'function' ? AmazfitTrainingCard : null,\n    z2hBuildHourlyStepProfile: typeof z2hBuildHourlyStepProfile === 'function' ? z2hBuildHourlyStepProfile : null,\n    z2hDiscoverSameDevice, Z2H_TRAINING_METRIC_SPECS\n  };`, ctx, { filename: 'zepp2hass-cards.js' });
+  ctx.__z2hExports.AmazfitOverviewCard = vm.runInContext('typeof AmazfitOverviewCard === "function" ? AmazfitOverviewCard : null', ctx);
   return { ctx, registry, exports: ctx.__z2hExports };
 }
 
@@ -94,6 +95,36 @@ test('bundle registers a training card and graphical editor', () => {
   assert.ok(ctx.window.customCards.some((card) => card.type === 'amazfit-training-card'));
 });
 
+test('overview card renders today metrics from Zepp2Hass entities', () => {
+  const { exports, registry } = loadBundle();
+  assert.ok(registry.get('amazfit-overview-card'));
+  const card = new exports.AmazfitOverviewCard();
+  card.setConfig({
+    language: 'ru',
+    steps_entity: 'sensor.watch_steps',
+    sleep_score_entity: 'sensor.watch_sleep_score',
+    heart_rate_entity: 'sensor.watch_heart_rate',
+    pai_entity: 'sensor.watch_pai',
+    training_load_entity: 'sensor.watch_training_load',
+  });
+  card.hass = {
+    language: 'ru',
+    states: {
+      'sensor.watch_steps': { state: '12430', attributes: {} },
+      'sensor.watch_sleep_score': { state: '84', attributes: {} },
+      'sensor.watch_heart_rate': { state: '68', attributes: { unit_of_measurement: 'bpm' } },
+      'sensor.watch_pai': { state: '7', attributes: {} },
+      'sensor.watch_training_load': { state: '31', attributes: { full_recovery_time_hours: 14 } },
+    },
+  };
+
+  assert.match(card.innerHTML, /Сегодня/);
+  assert.match(card.innerHTML, /12 430/);
+  assert.match(card.innerHTML, /Сон/);
+  assert.match(card.innerHTML, /Восстановление/);
+  assert.match(card.innerHTML, /Восстановление[\s\S]*14[\s\S]*ч/);
+});
+
 
 test('training discovery follows Zepp2Hass config entry across secondary HA devices', () => {
   const { exports } = loadBundle();
@@ -138,9 +169,9 @@ test('training card renders last workout, load, recovery and recent workout list
   assert.match(card.innerHTML, /Последние тренировки/);
 });
 
-test('bundle keeps all five dashboard cards registered', () => {
+test('bundle keeps all six dashboard cards registered', () => {
   const { registry, ctx } = loadBundle();
-  const names = ['amazfit-sleep-card','amazfit-activity-card','amazfit-health-card','amazfit-training-card','family-activity-card'];
+  const names = ['amazfit-overview-card','amazfit-sleep-card','amazfit-activity-card','amazfit-health-card','amazfit-training-card','family-activity-card'];
   for (const name of names) assert.ok(registry.get(name), `${name} missing`);
   for (const name of names) assert.ok(ctx.window.customCards.some((card) => card.type === name), `${name} missing from picker`);
 });
