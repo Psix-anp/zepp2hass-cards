@@ -6,7 +6,7 @@
  * License: MIT
  */
 
-const Z2H_VERSION = "1.1.0";
+const Z2H_VERSION = "1.1.1";
 const Z2H_CARD_DEFINITIONS = [
   {
     type: "amazfit-sleep-card",
@@ -2858,6 +2858,7 @@ class AmazfitActivityCard extends HTMLElement {
       this._recordCache = {};
       this._recordLoading = null;
       this._hourlyHistoryCache = null;
+      this._selectedActivityDay = null;
       this._hourlyHistoryLoading = null;
     }
     this._view = this._view || "today";
@@ -2900,6 +2901,7 @@ class AmazfitActivityCard extends HTMLElement {
         average: "Среднее", best: "Лучший день", goal_days: "Дней с целью", streak: "Серия", days_word: "дн.",
         records: "Рекорды", personal_record: "Личный рекорд", best_7d: "Лучший за 7 дней", best_30d: "Лучший за 30 дней",
         hourly_profile: "Активность по часам", most_active_hour: "Самый активный час", active_hours: "Активных часов",
+        select_day: "Выберите день на графике", missing_day: "Нет данных",
       },
       en: {
         title: "Activity", today: "Today", days7: "7 days", days30: "30 days",
@@ -2909,6 +2911,7 @@ class AmazfitActivityCard extends HTMLElement {
         average: "Average", best: "Best day", goal_days: "Goal days", streak: "Streak", days_word: "days",
         records: "Records", personal_record: "Personal record", best_7d: "Best 7 days", best_30d: "Best 30 days",
         hourly_profile: "Activity by hour", most_active_hour: "Most active hour", active_hours: "Active hours",
+        select_day: "Select a day on the chart", missing_day: "No data",
       },
     };
     return tr[this._lang()][key] ?? key;
@@ -3004,6 +3007,16 @@ class AmazfitActivityCard extends HTMLElement {
       .activity-history{display:grid;gap:14px}.activity-history-chart{height:190px;display:flex;align-items:stretch;gap:5px;position:relative;padding-top:10px;border-bottom:1px solid color-mix(in srgb,var(--primary-text-color) 12%,transparent)}.activity-days{display:grid;grid-template-columns:repeat(var(--activity-days),minmax(0,1fr));gap:5px;align-items:end;width:100%;position:relative;z-index:2}.activity-day{display:grid;grid-template-rows:1fr auto;gap:5px;align-items:end;min-width:0;height:100%}.activity-day-bar-wrap{height:100%;display:flex;align-items:end;justify-content:center}.activity-day-bar{width:min(18px,70%);min-height:2px;border-radius:6px 6px 2px 2px;background:var(--primary-color);opacity:.88}.activity-day.empty .activity-day-bar{height:2px!important;background:color-mix(in srgb,var(--primary-text-color) 14%,transparent)}.activity-day-label{text-align:center;font-size:9px;line-height:1.1;color:var(--secondary-text-color);white-space:nowrap;overflow:hidden}.activity-history.compact .activity-history-chart{height:150px}.activity-history.compact .activity-days{gap:2px}.activity-history.compact .activity-day-label{display:none}.activity-history.compact .activity-day-bar{width:80%;border-radius:3px 3px 1px 1px}.activity-target-line{position:absolute;left:0;right:0;border-top:1px dashed color-mix(in srgb,var(--primary-color) 62%,transparent);z-index:1}.activity-history-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.activity-history-stat{padding:10px;border-radius:12px;background:color-mix(in srgb,var(--primary-text-color) 5%,transparent)}.activity-history-stat strong{display:block;font-size:18px}.activity-history-stat span{display:block;font-size:10px;color:var(--secondary-text-color)}.activity-history-stat small{display:block;margin-top:3px;font-size:9px;color:var(--secondary-text-color)}
       .activity-records{margin-top:14px}.activity-records-title{font-size:12px;font-weight:750;color:var(--secondary-text-color);margin-bottom:8px}.activity-records-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.activity-record{padding:11px 12px;border-radius:13px;background:color-mix(in srgb,var(--primary-text-color) 5%,transparent)}.activity-record-label{font-size:10px;color:var(--secondary-text-color)}.activity-record-value{margin-top:3px;font-size:18px;font-weight:800}.activity-record-date{margin-top:2px;font-size:9px;color:var(--secondary-text-color)}.activity-record.streak .activity-record-value{color:var(--primary-color)}
       .activity-hourly{margin-top:16px;padding-top:2px}.activity-hourly-title{font-size:12px;font-weight:750;color:var(--secondary-text-color);margin-bottom:9px}.activity-hourly-chart{height:92px;display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:2px;align-items:end;border-bottom:1px solid color-mix(in srgb,var(--primary-text-color) 12%,transparent);padding-bottom:15px;position:relative}.activity-hour{appearance:none;height:100%;display:flex;align-items:end;position:relative;border:0;padding:0;background:transparent;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}.activity-hour:focus-visible{outline:2px solid var(--primary-color);outline-offset:2px;border-radius:4px}.activity-hour-bar{width:100%;min-height:2px;border-radius:3px 3px 1px 1px;background:color-mix(in srgb,var(--primary-color) 82%,transparent)}.activity-hour.selected .activity-hour-bar{background:var(--primary-color);box-shadow:0 0 0 1px color-mix(in srgb,var(--primary-color) 44%,transparent)}.activity-hour:nth-child(3n+1)::after{content:attr(data-hour);position:absolute;left:0;bottom:-14px;transform:translateX(-1px);font-size:8px;color:var(--secondary-text-color)}.activity-hourly-selection{display:flex;align-items:baseline;gap:7px;margin-top:8px;padding:7px 9px;border-radius:9px;background:color-mix(in srgb,var(--primary-color) 9%,transparent);font-size:11px}.activity-hourly-selection strong{color:var(--primary-text-color)}.activity-hourly-selection span{color:var(--primary-color);font-weight:750}.activity-hourly-summary{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:10px;color:var(--secondary-text-color)}.activity-hourly-summary strong{color:var(--primary-text-color);font-size:11px}
+      .activity-day{appearance:none;border:0;padding:0;background:transparent;color:inherit;font:inherit;cursor:pointer;border-radius:7px;touch-action:pan-y pinch-zoom;-webkit-tap-highlight-color:transparent}
+      .activity-day:focus-visible{outline:2px solid var(--primary-color);outline-offset:1px}
+      .activity-day[aria-pressed="true"]{background:color-mix(in srgb,var(--primary-color) 12%,transparent)}
+      .activity-day[aria-pressed="true"] .activity-day-bar{opacity:1;box-shadow:0 0 0 1px var(--primary-color)}
+      .activity-day-bar{background:linear-gradient(to top,color-mix(in srgb,var(--primary-color) 60%,transparent),var(--primary-color));border-radius:7px 7px 2px 2px}
+      .activity-day.empty{opacity:.6}
+      .activity-day-selection{min-height:52px;box-sizing:border-box;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--primary-color) 9%,transparent);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 12px;font-size:12px;color:var(--secondary-text-color)}
+      .activity-day-selection strong{color:var(--primary-text-color);font-size:14px}
+      .activity-day-selection small{flex-basis:100%;font-size:11px}
+      .activity-period-axis{display:flex;justify-content:space-between;font-size:10px;color:var(--secondary-text-color);margin-top:-8px}
       .activity-retry{margin-top:10px;border:1px solid var(--divider-color);border-radius:9px;padding:7px 11px;background:transparent;color:var(--primary-color)}
       @media(max-width:420px){.activity-history-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
     `;
@@ -3298,13 +3311,18 @@ class AmazfitActivityCard extends HTMLElement {
       const hasData = day?.hasData && Number.isFinite(Number(day.steps));
       const height = hasData ? Math.max(2, Math.min(100, (Number(day.steps) / maxValue) * 100)) : 2;
       const label = z2hEsc(day?.label || day?.key || "");
-      return `<div class="activity-day${hasData ? "" : " empty"}"><div class="activity-day-bar-wrap"><div class="activity-day-bar" style="height:${height.toFixed(1)}%" title="${hasData ? this._fmtNumber(day.steps) : "—"}"></div></div><div class="activity-day-label">${label}</div></div>`;
+      const date = this._dayDateLabel(day);
+      const value = hasData ? `${this._t("steps")}: ${this._fmtNumber(day.steps)}` : this._t("missing_day");
+      const goal = hasData && Number(day.target) > 0 ? `${this._t("goal")}: ${this._fmtNumber(day.target)} · ${Math.round(Number(day.steps) / Number(day.target) * 100)}%` : "";
+      return `<button type="button" class="activity-day${hasData ? "" : " empty"}" data-activity-day="${z2hEsc(day.key)}" data-day-date="${z2hEsc(date)}" data-day-value="${z2hEsc(value)}" data-day-goal="${z2hEsc(goal)}" aria-label="${z2hEsc(`${date} · ${value}${goal ? ` · ${goal}` : ""}`)}" aria-pressed="false"><span class="activity-day-bar-wrap"><span class="activity-day-bar" style="height:${height.toFixed(1)}%"></span></span><span class="activity-day-label">${label}</span></button>`;
     }).join("");
     return `<div class="activity-history${compact ? " compact" : ""}" data-available-days="${available.length}">
       <div class="activity-history-chart">
         ${targetBottom !== null ? `<div class="activity-target-line" style="bottom:${targetBottom.toFixed(1)}%"></div>` : ""}
         <div class="activity-days" style="--activity-days:${data.length}">${bars}</div>
       </div>
+      ${compact ? `<div class="activity-period-axis"><span>${z2hEsc(this._dayDateLabel(data[0]))}</span><span>${z2hEsc(this._dayDateLabel(data[data.length - 1]))}</span></div>` : ""}
+      <div class="activity-day-selection" role="status" aria-live="polite"><span data-day-selected-date>${this._t("select_day")}</span><strong data-day-selected-value></strong><small data-day-selected-goal></small></div>
       <div class="activity-history-summary">
         <div class="activity-history-stat"><strong data-stat="average">${this._fmtNumber(average)}</strong><span>${this._t("average")}</span></div>
         <div class="activity-history-stat"><strong data-stat="best">${this._fmtNumber(best)}</strong><span>${this._t("best")}</span><small>${z2hEsc(this._dayDateLabel(bestDay))}</small></div>
@@ -3347,6 +3365,28 @@ class AmazfitActivityCard extends HTMLElement {
     }
   }
 
+  _setupHistorySelection() {
+    const buttons = [...(this.querySelectorAll?.("[data-activity-day]") || [])];
+    const date = this.querySelector?.("[data-day-selected-date]");
+    const value = this.querySelector?.("[data-day-selected-value]");
+    const goal = this.querySelector?.("[data-day-selected-goal]");
+    if (!date || !value || !goal) return;
+    const select = (button) => {
+      this._selectedActivityDay = button.dataset.activityDay;
+      for (const item of buttons) item.setAttribute("aria-pressed", String(item === button));
+      date.textContent = button.dataset.dayDate;
+      value.textContent = button.dataset.dayValue;
+      goal.textContent = button.dataset.dayGoal;
+    };
+    for (const button of buttons) {
+      button.addEventListener("click", () => select(button));
+      button.addEventListener("focus", () => select(button));
+      button.addEventListener("pointerenter", event => { if (event.pointerType === "mouse") select(button); });
+    }
+    const selected = buttons.find(button => button.dataset.activityDay === this._selectedActivityDay);
+    if (selected) select(selected);
+  }
+
   render() {
     if (!this._hass || !this.config) return;
     const mappings = this._resolvedMappings();
@@ -3360,6 +3400,7 @@ class AmazfitActivityCard extends HTMLElement {
     this.innerHTML = `<ha-card><style>${this._styles()}</style><div class="activity-head"><div class="activity-icon"><ha-icon icon="mdi:walk"></ha-icon></div><div class="activity-title">${z2hEsc(title)}</div></div>${this._tabsHtml()}${body}</ha-card>`;
     this._setupTabs();
     this._setupHourlyProfile();
+    this._setupHistorySelection();
   }
 }
 

@@ -162,6 +162,8 @@ Node.js 22+:
 npm run check
 ```
 
+Activity browser checks require Playwright and its Chromium browser. With Playwright installed, run `npm run test:browser`; if installed outside this project, set `PLAYWRIGHT_MODULE` to its absolute `index.mjs` path. Tests cover touch, hover, keyboard, RU/EN, light/dark layouts and 7/30-day selection. Synthetic-data screenshots are saved in the ignored `screenshots-local/` directory.
+
 ## License
 
 MIT
