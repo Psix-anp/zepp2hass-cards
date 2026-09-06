@@ -6,7 +6,7 @@ import vm from 'node:vm';
 const sourcePath = new URL('../zepp2hass-cards.js', import.meta.url);
 const source = fs.readFileSync(sourcePath, 'utf8');
 
-function loadBundle() {
+function loadBundle({ now } = {}) {
   const registry = new Map();
   class HTMLElement {
     constructor() { this.innerHTML = ''; this.dataset = {}; }
@@ -27,7 +27,10 @@ function loadBundle() {
     document: { createElement(name) { const K = registry.get(name); return K ? new K() : { tagName: name }; } },
     navigator: { language: 'ru-RU' },
     Intl,
-    Date,
+    Date: now ? class extends Date {
+      constructor(...args) { super(...(args.length ? args : [now])); }
+      static now() { return Date.parse(now); }
+    } : Date,
     Math,
     Number,
     String,
@@ -57,12 +60,69 @@ test('hourly step profile buckets positive step deltas by local hour', () => {
     { state: '500', last_updated: '2026-09-04T01:30:00Z' },
     { state: '900', last_updated: '2026-09-04T03:00:00Z' },
   ];
-  const result = exports.z2hBuildHourlyStepProfile(rows, 'UTC');
+  const result = exports.z2hBuildHourlyStepProfile(rows, 'UTC', new Date('2026-09-04T12:00:00Z'));
   assert.equal(result.hours.length, 24);
   assert.deepEqual(Array.from(result.hours.slice(0, 4)), [100, 400, 0, 400]);
   assert.equal(result.total, 900);
   assert.equal(result.bestHour, 1);
   assert.equal(result.bestValue, 400);
+});
+
+test('hourly profile only counts the selected local day, including real midnight steps', () => {
+  const { exports } = loadBundle();
+  const rows = [
+    { s: '9146', lu: Date.parse('2026-09-04T20:59:59Z') / 1000 },
+    { s: '12', lu: Date.parse('2026-09-04T21:00:00Z') / 1000 },
+    { s: '112', lu: Date.parse('2026-09-04T21:30:00Z') / 1000 },
+    { s: '4259', lu: Date.parse('2026-09-05T15:00:00Z') / 1000 },
+    { s: '50', lu: Date.parse('2026-09-05T21:00:00Z') / 1000 },
+  ];
+  const profile = exports.z2hBuildHourlyStepProfile(rows, 'Europe/Moscow', new Date('2026-09-05T15:30:00Z'));
+  assert.equal(profile.hours[0], 112);
+  assert.equal(profile.hours[18], 4147);
+  assert.equal(profile.total, 4259);
+});
+
+test('hourly history excludes the recorder start-state carrying yesterday total', async () => {
+  const { exports } = loadBundle({ now: '2026-09-05T15:30:00Z' });
+  const card = new exports.AmazfitActivityCard();
+  card.setConfig({ steps_entity: 'sensor.watch_steps', language: 'ru' });
+  const today = [
+    { s: '0', lu: Date.parse('2026-09-04T21:05:00Z') / 1000 },
+    { s: '100', lu: Date.parse('2026-09-04T21:30:00Z') / 1000 },
+    { s: '4259', lu: Date.parse('2026-09-05T15:00:00Z') / 1000 },
+  ];
+  card._hass = {
+    config: { time_zone: 'Europe/Moscow' }, states: {},
+    callWS: async (msg) => {
+      if (msg.type !== 'history/history_during_period') return {};
+      assert.equal(msg.start_time, '2026-09-04T21:00:00.000Z');
+      // Recorder inserts a synthetic boundary state unless explicitly disabled.
+      return { 'sensor.watch_steps': msg.include_start_time_state === false ? today : [
+        { s: '9146', lu: Date.parse(msg.start_time) / 1000 }, ...today,
+      ] };
+    },
+  };
+  await card._loadHourlyHistory();
+  const html = card._renderHourlyProfile({ value: 4259, state: { last_changed: '2026-09-05T15:00:00Z' } });
+  assert.match(html, /title="00:00–01:00 · 100 Шаги"/);
+  assert.doesNotMatch(html, /9 146|9 246/);
+});
+
+test('hourly profile ignores a stale live counter even when its attributes updated today', () => {
+  const { exports } = loadBundle({ now: '2026-09-05T15:30:00Z' });
+  const card = new exports.AmazfitActivityCard();
+  card.setConfig({ steps_entity: 'sensor.watch_steps' });
+  card._hass = { config: { time_zone: 'Europe/Moscow' }, states: {} };
+  card._hourlyHistoryCache = { key: card._hourlyCacheKey(), rows: [] };
+  for (const state of [
+    { last_changed: '2026-09-04T20:00:00Z', last_updated: '2026-09-04T21:10:00Z' },
+    { last_updated: '2026-09-04T20:00:00Z' },
+    {},
+  ]) {
+    const html = card._renderHourlyProfile({ value: 9146, state });
+    assert.equal((html.match(/style="height:2.0%"/g) || []).length, 24);
+  }
 });
 
 test('sleep period stats expose average bedtime/wake and latest schedule deltas', () => {
@@ -246,7 +306,7 @@ test('activity card renders the 24-hour profile from recorded states plus live s
   const card = new exports.AmazfitActivityCard();
   card.setConfig({ steps_entity: 'sensor.watch_steps', show_hourly_profile: true, language: 'ru' });
   const now = new Date();
-  const stamp = (hour, value) => ({ state: String(value), last_updated: new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0).toISOString() });
+  const stamp = (hour, value) => ({ state: String(value), last_updated: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour, 0)).toISOString() });
   card.hass = {
     language: 'ru',
     config: { time_zone: 'UTC' },
@@ -270,7 +330,7 @@ test('activity hourly profile shows selected hour steps after a tap', async () =
   const card = new exports.AmazfitActivityCard();
   card.setConfig({ steps_entity: 'sensor.watch_steps', show_hourly_profile: true, language: 'ru' });
   const now = new Date();
-  const stamp = (hour, value) => ({ state: String(value), last_updated: new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0).toISOString() });
+  const stamp = (hour, value) => ({ state: String(value), last_updated: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour, 0)).toISOString() });
   card.hass = {
     language: 'ru',
     config: { time_zone: 'UTC' },

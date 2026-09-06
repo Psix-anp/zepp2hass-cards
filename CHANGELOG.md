@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed a false midnight spike in hourly activity caused by counting the recorder's initial state (the previous day's step total) as new steps.
+- Hourly activity now includes only the selected day in the Home Assistant time zone. Attribute-only updates no longer carry stale step values into today's chart, while genuine steps after midnight remain visible.
+
 ## [1.1.1] - 2026-09-05
 
 ### Fixed

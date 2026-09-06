@@ -268,10 +268,12 @@ function z2hHistoryNumericState(item) {
   return Number.isFinite(value) && value >= 0 ? value : null;
 }
 
-function z2hBuildHourlyStepProfile(historyItems, timeZone = "UTC") {
+function z2hBuildHourlyStepProfile(historyItems, timeZone = "UTC", day = new Date()) {
+  const dayKey = z2hLocalDayKey(day, timeZone);
   const rows = (Array.isArray(historyItems) ? historyItems : [])
     .map((item) => ({ item, timeMs: z2hHistoryTimeMs(item), value: z2hHistoryNumericState(item) }))
     .filter((row) => row.timeMs != null && row.value != null)
+    .filter((row) => z2hLocalDayKey(new Date(row.timeMs), timeZone) === dayKey)
     .sort((a, b) => a.timeMs - b.timeMs);
   const hours = Array.from({ length: 24 }, () => 0);
   let previous = null;
@@ -3157,6 +3159,8 @@ class AmazfitActivityCard extends HTMLElement {
       start_time: start.toISOString(),
       end_time: end.toISOString(),
       entity_ids: [stepsEntity],
+      // Recorder's synthetic start state is yesterday's total, not new steps.
+      include_start_time_state: false,
       minimal_response: false,
       no_attributes: true,
     }).then((result) => {
@@ -3180,7 +3184,8 @@ class AmazfitActivityCard extends HTMLElement {
     if (this._hourlyHistoryCache?.key !== key && !this._hourlyHistoryLoading) this._loadHourlyHistory();
     const rows = [...(this._hourlyHistoryCache?.key === key ? this._hourlyHistoryCache.rows : [])];
     const liveState = stepsMetric?.state;
-    if (liveState) rows.push({ state: String(stepsMetric.value), last_updated: liveState.last_updated || liveState.last_changed || new Date().toISOString() });
+    // Attribute-only updates must not move yesterday's counter into today.
+    if (liveState) rows.push({ state: String(stepsMetric.value), last_updated: liveState.last_changed || liveState.last_updated });
     const profile = z2hBuildHourlyStepProfile(rows, this._timeZone());
     const maxValue = Math.max(1, ...profile.hours);
     const bars = profile.hours.map((value, hour) => {

@@ -52,7 +52,54 @@ try {
       assert.match(await readout.innerText(), /6[ ,]000/);
       assert.equal(await bars.nth(0).evaluate(el => el === document.activeElement), true);
     }
+    await page.clock.setFixedTime(new Date('2026-09-05T15:30:00Z'));
+    await page.evaluate((language) => {
+      document.querySelector('amazfit-activity-card')?.remove();
+      const card = document.createElement('amazfit-activity-card');
+      card.setConfig({ steps_entity: 'sensor.demo_steps', language });
+      document.body.append(card);
+      card.hass = {
+        language, config: { time_zone: 'Europe/Moscow' },
+        states: { 'sensor.demo_steps': {
+          state: '4259', last_changed: '2026-09-05T15:00:00Z', last_updated: '2026-09-05T15:20:00Z', attributes: { target: 15000 },
+        } },
+        callWS: async (msg) => {
+          if (msg.type !== 'history/history_during_period') return {};
+          const rows = msg.start_time === '2026-09-04T21:00:00.000Z' ? [
+            { s: '0', lu: Date.parse('2026-09-04T21:05:00Z') / 1000 },
+            { s: '100', lu: Date.parse('2026-09-04T21:30:00Z') / 1000 },
+            { s: '4259', lu: Date.parse('2026-09-05T15:00:00Z') / 1000 },
+          ] : [];
+          if (msg.include_start_time_state !== false) rows.unshift({ s: '9146', lu: Date.parse(msg.start_time) / 1000 });
+          return { 'sensor.demo_steps': rows };
+        },
+      };
+      return card._loadHourlyHistory();
+    }, language);
+    const hours = page.locator('[data-activity-hour]');
+    assert.equal(await hours.count(), 24);
+    assert.match(await hours.nth(0).getAttribute('title'), / · 100 /);
+    assert.equal(await hours.nth(18).locator('.activity-hour-bar').evaluate(el => el.style.height), '100%');
+    if (mobile) await hours.nth(0).tap();
+    else await hours.nth(0).click();
+    assert.match(await page.locator('.activity-hourly-selection').innerText(), /00:00–01:00\s+100 /);
+    await page.screenshot({ path: `screenshots-local/activity-hourly-${width}-${language}.png` });
+    // A card left open across midnight must not reuse the previous day's history/live total.
+    await page.clock.setFixedTime(new Date('2026-09-05T21:10:00Z'));
+    await page.evaluate(async () => {
+      const card = document.querySelector('amazfit-activity-card');
+      card.hass = { ...card._hass };
+      await card._loadHourlyHistory();
+    });
+    assert.ok((await hours.locator('.activity-hour-bar').evaluateAll(els => els.map(el => el.style.height))).every(height => height === '2%'));
+    await page.evaluate(() => {
+      const card = document.querySelector('amazfit-activity-card');
+      card.hass = { ...card._hass, states: { 'sensor.demo_steps': {
+        state: '120', last_changed: '2026-09-05T21:10:00Z', attributes: {},
+      } } };
+    });
+    assert.match(await hours.nth(0).getAttribute('title'), / · 120 /);
     await context.close();
   }
-  console.log('Activity browser checks: touch, hover, keyboard, zero/missing data, live refresh, 7/30 days PASS');
+  console.log('Activity browser checks: touch, hover, keyboard, zero/missing data, live refresh, 7/30 days, midnight spike and day rollover PASS');
 } finally { await browser.close(); }
