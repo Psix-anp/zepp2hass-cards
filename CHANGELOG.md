@@ -4,16 +4,16 @@
 
 ## [1.1.1] - 2026-09-05
 
-### Исправлено / Fixed
+### Fixed
 
-- В активности за 7 и 30 дней нажатие на день показывает дату, шаги и процент цели. Выбор доступен по всей высоте столбика, включая дни без активности.
-- Наведение мыши и выбор с клавиатуры показывают те же данные. Выбранный день сохраняется при обновлении состояний; выбор не перерисовывает карточку.
-- Нулевые шаги и отсутствующая история отображаются отдельно.
+- Tap a day in the 7-day or 30-day activity chart to see its date, step count, and goal completion percentage. The full height of each bar is selectable, including days with no activity.
+- Mouse hover and keyboard selection show the same details. The selected day is preserved during live updates, and selecting a day no longer rebuilds the card.
+- Days with zero steps are clearly distinguished from days with missing history.
 
-### Оформление / Appearance
+### Appearance
 
-- Подсветка выбранного дня, градиентные столбики, панель подробностей под графиком и подписи границ периода за 30 дней.
-- Touch, hover and keyboard selection for 7/30-day activity charts, with date, steps and goal details. Improved selection styling and month date labels.
+- Added selected-day highlighting, gradient bars, and a details panel below the activity chart.
+- Improved date labels at the boundaries of the 30-day chart.
 
 ## [1.1.0] - 2026-09-04
 

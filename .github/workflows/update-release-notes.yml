@@ -1,0 +1,44 @@
+name: Update release notes
+
+on:
+  # Apply the v1.1.1 translation when this workflow is introduced or updated.
+  push:
+    branches: [main]
+    paths: [.github/workflows/update-release-notes.yml]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to update
+        required: true
+        default: v1.1.1
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ inputs.tag || 'v1.1.1' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare English release notes
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const tag = process.env.RELEASE_TAG;
+          if (!/^v\d+\.\d+\.\d+(?:-[\w.-]+)?$/.test(tag)) throw new Error('Invalid release tag');
+          const section = fs.readFileSync('CHANGELOG.md', 'utf8').split(/^## /m)
+            .find(part => part.startsWith('[' + tag.slice(1) + ']'));
+          const notes = section?.slice(section.indexOf('\n') + 1).trim();
+          if (!notes || /\p{Script=Cyrillic}/u.test(notes)) throw new Error('Release notes must be non-empty and written in English');
+          fs.writeFileSync('release-notes.md', notes + '\n');
+          NODE
+      - name: Update existing release description only
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release view "$RELEASE_TAG" --json tagName
+          gh release edit "$RELEASE_TAG" --notes-file release-notes.md

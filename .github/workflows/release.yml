@@ -23,6 +23,9 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: >-
           awk -v version="${RELEASE_TAG#v}" '$0 ~ "^## \\[" version "\\]" { found=1; next } found && /^## / { exit } found { print }' CHANGELOG.md > release-notes.md && test -s release-notes.md
+      - name: Check release notes language
+        run: |
+          node -e "const notes = require('fs').readFileSync('release-notes.md', 'utf8'); if (!notes.trim() || /\p{Script=Cyrillic}/u.test(notes)) throw new Error('Release notes must be non-empty and written in English');"
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
