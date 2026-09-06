@@ -4,10 +4,18 @@
 
 HACS and manual installation both deliver a single browser bundle: `zepp2hass-cards.js`.
 
-The current project intentionally keeps the working baseline as one file. Do not perform a broad source-layout rewrite during the initial GitHub publication pass.
+`npm run build` assembles `src/core.js`, `src/optional-shared.js`,
+`src/achievements.js`, and `src/activity-extras.js` in that order. The committed
+bundle is checked for exact parity during validation. No runtime imports or new
+installation resources are required.
+
+Optional sections use a shared adapter that preserves the base card's DOM and
+event handlers. Extensions add controls through the existing graphical editor.
+History caches are bounded, in memory, and scoped by entity and time zone.
 
 ## Cards
 
+- `amazfit-overview-card`: current-day overview.
 - `amazfit-sleep-card`: Sleep Score/stages/history and interactive hypnogram.
 - `amazfit-activity-card`: steps/targets/history/records/hourly profile.
 - `amazfit-health-card`: health and recovery telemetry.

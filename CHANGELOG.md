@@ -2,10 +2,28 @@
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-06
+
+### Added
+
+- Optional achievements for Activity, Sleep, and Training: 27 badge families with Bronze, Silver, and Gold levels, progress, observed earning dates, and an expandable collection.
+- Activity rewards include goal streaks, accumulated steps and distance, observed personal records, active weekends, and comebacks. Sleep rewards cover personal duration windows, score targets, and bedtime/wake consistency. Training rewards cover recorded sessions, variety, and personal weekly workout-day goals.
+- Graphical settings to enable achievements, disable their category or individual badges, show or hide locked badges, configure personal targets, and opt into reward animations.
+- Optional activity calendar with goal-based shading, selected-day hourly details, yesterday comparison at the same local time, summaries of the last two completed seven-day periods, entity update age, and compact display.
+- New feature switches are off by default. Disabled optional sections do not request additional history. All new controls and labels support English and Russian.
+
 ### Fixed
 
 - Fixed a false midnight spike in hourly activity caused by counting the recorder's initial state (the previous day's step total) as new steps.
 - Hourly activity now includes only the selected day in the Home Assistant time zone. Attribute-only updates no longer carry stale step values into today's chart, while genuine steps after midnight remain visible.
+
+### Development
+
+- Split source code into focused modules while keeping the single ready-to-install HACS bundle. Added source/bundle parity checks and browser coverage for optional sections, touch, keyboard, and graphical settings.
+
+### Data availability
+
+- Achievements are recalculated from available records in a rolling 30-day window; they are not a permanent trophy archive. Missing records do not prove streaks or zero activity. Historical comparisons require sufficient recorded coverage.
 
 ## [1.1.1] - 2026-09-05
 

@@ -1,13 +1,14 @@
 {
   "name": "zepp2hass-cards",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "description": "Community Home Assistant dashboard cards for Zepp2Hass",
   "scripts": {
+    "build": "node scripts/build.mjs",
     "test": "node --test tests/*.test.mjs",
-    "test:browser": "node tests/browser/activity-history.mjs",
-    "check": "node --check zepp2hass-cards.js && npm test && node scripts/privacy-scan.mjs"
+    "test:browser": "node tests/browser/activity-history.mjs && node tests/browser/optional-features.mjs",
+    "check": "node scripts/build.mjs --check && node --check zepp2hass-cards.js && npm test && node scripts/privacy-scan.mjs"
   },
   "engines": {
     "node": ">=22"

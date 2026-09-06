@@ -17,6 +17,17 @@ Community dashboard cards for **Home Assistant**, designed around the entities e
 
 All cards are designed for graphical Home Assistant configuration. YAML remains available for advanced/manual overrides.
 
+## Optional features (v1.2)
+
+Activity, Sleep, and Training now offer **27 achievement families**, each with three levels,
+progress, and observed earning dates. Enable **Show achievements** in the card editor;
+individual badges, personal targets, locked-badge visibility, and animations are configurable.
+
+The Activity editor also offers a goal-shaded calendar, selected-day hourly details,
+same-time yesterday comparison, weekly summaries, entity update age, and compact display.
+Each new feature has its own switch and is **off by default**. Disabled sections do not
+request additional history. [See settings, badge types, and data limitations](docs/OPTIONAL_FEATURES.md).
+
 ## Screenshots
 
 ### Sleep
