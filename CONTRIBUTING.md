@@ -7,10 +7,21 @@ Contributions are welcome after the initial public baseline is established.
 Requirements: Node.js 22+.
 
 ```bash
+npm run build
 npm run check
 ```
 
 No npm dependencies are currently required for the validation suite.
+
+Edit `src/core.js` for the existing cards, `src/achievements.js` for achievements,
+and `src/activity-extras.js` for optional activity sections. Their shared card/editor
+adapter is in `src/optional-shared.js`. The build produces the single
+`zepp2hass-cards.js` file installed by HACS; do not edit the generated file directly.
+Validation checks that the committed bundle exactly matches these sources.
+
+For browser checks, install Playwright and Chromium in your development environment,
+then run `npm run test:browser`. Alternatively, set `PLAYWRIGHT_MODULE` to the absolute
+path of an existing Playwright module. Tests use synthetic records, not a live Home Assistant server.
 
 ## Pull requests
 
